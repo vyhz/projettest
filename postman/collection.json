@@ -1,0 +1,551 @@
+{
+  "info": {
+    "name": "API Tests Collection",
+    "description": "Collection de tests API pour validation des endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Authentication",
+      "item": [
+        {
+          "name": "Login Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 500ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(500);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "    pm.environment.set(\"auth_token\", jsonData.token);",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type is application/json\", function () {",
+                  "    pm.response.to.have.header(\"Content-Type\", /application\\/json/);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"eve.holt@reqres.in\",\n  \"password\": \"cityslicka\"\n}"
+            },
+            "url": {
+              "raw": "https://reqres.in/api/login",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "login"]
+            },
+            "description": "Test de connexion avec identifiants valides"
+          },
+          "response": []
+        },
+        {
+          "name": "Login Failure - Missing Password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has error message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('error');",
+                  "    pm.expect(jsonData.error).to.include('Missing password');",
+                  "});",
+                  "",
+                  "pm.test(\"Response time is less than 300ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(300);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"eve.holt@reqres.in\"\n}"
+            },
+            "url": {
+              "raw": "https://reqres.in/api/login",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "login"]
+            },
+            "description": "Test de connexion échouée - mot de passe manquant"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has id and token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('token');",
+                  "});",
+                  "",
+                  "pm.test(\"Token is not empty\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"eve.holt@reqres.in\",\n  \"password\": \"pistol\"\n}"
+            },
+            "url": {
+              "raw": "https://reqres.in/api/register",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "register"]
+            },
+            "description": "Test d'inscription réussie"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests d'authentification et d'inscription"
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get Users List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Users have required fields\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var user = jsonData.data[0];",
+                  "    pm.expect(user).to.have.property('id');",
+                  "    pm.expect(user).to.have.property('email');",
+                  "    pm.expect(user).to.have.property('first_name');",
+                  "    pm.expect(user).to.have.property('last_name');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has pagination info\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('page');",
+                  "    pm.expect(jsonData).to.have.property('per_page');",
+                  "    pm.expect(jsonData).to.have.property('total');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://reqres.in/api/users?page=1",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Récupération de la liste des utilisateurs avec pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"User ID is correct\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.id).to.eql(2);",
+                  "});",
+                  "",
+                  "pm.test(\"Email format is valid\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://reqres.in/api/users/2",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "users", "2"]
+            },
+            "description": "Récupération d'un utilisateur spécifique"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body is empty object\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Object.keys(jsonData).length).to.eql(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://reqres.in/api/users/999",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "users", "999"]
+            },
+            "description": "Test de récupération d'un utilisateur inexistant"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"User created with correct data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('name', 'John Doe');",
+                  "    pm.expect(jsonData).to.have.property('job', 'Developer');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has id and createdAt\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('createdAt');",
+                  "    pm.environment.set(\"created_user_id\", jsonData.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"job\": \"Developer\"\n}"
+            },
+            "url": {
+              "raw": "https://reqres.in/api/users",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "users"]
+            },
+            "description": "Création d'un nouvel utilisateur"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"User updated with new data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('name', 'John Updated');",
+                  "    pm.expect(jsonData).to.have.property('job', 'Senior Developer');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has updatedAt timestamp\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('updatedAt');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"job\": \"Senior Developer\"\n}"
+            },
+            "url": {
+              "raw": "https://reqres.in/api/users/2",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "users", "2"]
+            },
+            "description": "Mise à jour d'un utilisateur existant"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body is empty\", function () {",
+                  "    pm.expect(pm.response.text()).to.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "https://reqres.in/api/users/2",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "users", "2"]
+            },
+            "description": "Suppression d'un utilisateur"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests CRUD sur les utilisateurs"
+    },
+    {
+      "name": "Resources",
+      "item": [
+        {
+          "name": "Get Resources List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Resources have correct structure\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    var resource = jsonData.data[0];",
+                  "    pm.expect(resource).to.have.property('id');",
+                  "    pm.expect(resource).to.have.property('name');",
+                  "    pm.expect(resource).to.have.property('year');",
+                  "    pm.expect(resource).to.have.property('color');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://reqres.in/api/unknown",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "unknown"]
+            },
+            "description": "Récupération de la liste des ressources"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Resource",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Color format is valid hex\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.color).to.match(/^#[0-9A-F]{6}$/i);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://reqres.in/api/unknown/2",
+              "protocol": "https",
+              "host": ["reqres", "in"],
+              "path": ["api", "unknown", "2"]
+            },
+            "description": "Récupération d'une ressource spécifique"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests sur les ressources"
+    },
+    {
+      "name": "Delayed Response",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is greater than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.above(3000);",
+              "});",
+              "",
+              "pm.test(\"Data is returned despite delay\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData.data).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://reqres.in/api/users?delay=3",
+          "protocol": "https",
+          "host": ["reqres", "in"],
+          "path": ["api", "users"],
+          "query": [
+            {
+              "key": "delay",
+              "value": "3"
+            }
+          ]
+        },
+        "description": "Test de réponse différée pour simuler la latence"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://reqres.in/api"
+    }
+  ]
+}

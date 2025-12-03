@@ -1,0 +1,93 @@
+{
+  "title": "CPU Stress Test",
+  "description": "Test de résilience sous charge CPU élevée",
+  "tags": ["cpu", "performance", "stress"],
+  "configuration": {
+    "duration": 30,
+    "workers": 2
+  },
+  "steady-state-hypothesis": {
+    "title": "System resources are available",
+    "probes": [
+      {
+        "type": "probe",
+        "name": "cpu-usage-before-test",
+        "tolerance": {
+          "type": "range",
+          "range": [0, 90]
+        },
+        "provider": {
+          "type": "python",
+          "module": "psutil",
+          "func": "cpu_percent",
+          "arguments": {
+            "interval": 1
+          }
+        }
+      }
+    ]
+  },
+  "method": [
+    {
+      "type": "action",
+      "name": "introduce-cpu-stress",
+      "background": true,
+      "provider": {
+        "type": "process",
+        "path": "python",
+        "arguments": [
+          "-c",
+          "import time; [i*i for i in range(10000000) for _ in range(100)]"
+        ]
+      },
+      "pauses": {
+        "after": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "measure-cpu-during-stress",
+      "provider": {
+        "type": "python",
+        "module": "psutil",
+        "func": "cpu_percent",
+        "arguments": {
+          "interval": 2
+        }
+      }
+    },
+    {
+      "type": "probe",
+      "name": "check-memory-usage",
+      "provider": {
+        "type": "python",
+        "module": "psutil",
+        "func": "virtual_memory"
+      }
+    },
+    {
+      "type": "probe",
+      "name": "verify-system-still-responsive",
+      "tolerance": 200,
+      "provider": {
+        "type": "http",
+        "url": "https://reqres.in/api/users?page=1",
+        "timeout": 10
+      }
+    }
+  ],
+  "rollbacks": [
+    {
+      "type": "action",
+      "name": "cleanup-processes",
+      "provider": {
+        "type": "python",
+        "module": "os",
+        "func": "system",
+        "arguments": {
+          "command": "echo 'Cleanup completed'"
+        }
+      }
+    }
+  ]
+}

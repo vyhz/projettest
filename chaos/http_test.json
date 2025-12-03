@@ -1,0 +1,98 @@
+{
+  "title": "HTTP Availability Test",
+  "description": "Test de disponibilité HTTP de l'API",
+  "tags": ["http", "availability", "reliability"],
+  "configuration": {
+    "base_url": "https://reqres.in/api"
+  },
+  "steady-state-hypothesis": {
+    "title": "Application is healthy",
+    "probes": [
+      {
+        "type": "probe",
+        "name": "api-must-respond",
+        "tolerance": 200,
+        "provider": {
+          "type": "http",
+          "url": "${base_url}/users?page=1",
+          "timeout": 5
+        }
+      },
+      {
+        "type": "probe",
+        "name": "response-time-acceptable",
+        "tolerance": 2000,
+        "provider": {
+          "type": "python",
+          "module": "chaoslib.providers.http",
+          "func": "call",
+          "arguments": {
+            "url": "${base_url}/users/2"
+          }
+        }
+      }
+    ]
+  },
+  "method": [
+    {
+      "type": "action",
+      "name": "simulate-api-call",
+      "provider": {
+        "type": "http",
+        "url": "${base_url}/users",
+        "method": "GET",
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "verify-users-endpoint",
+      "provider": {
+        "type": "http",
+        "url": "${base_url}/users?page=1",
+        "timeout": 3,
+        "expected_status": 200
+      }
+    },
+    {
+      "type": "probe",
+      "name": "verify-single-user-endpoint",
+      "provider": {
+        "type": "http",
+        "url": "${base_url}/users/2",
+        "timeout": 3,
+        "expected_status": 200
+      }
+    },
+    {
+      "type": "probe",
+      "name": "verify-not-found-handling",
+      "tolerance": 404,
+      "provider": {
+        "type": "http",
+        "url": "${base_url}/users/999",
+        "timeout": 3
+      }
+    },
+    {
+      "type": "action",
+      "name": "test-post-endpoint",
+      "provider": {
+        "type": "http",
+        "url": "${base_url}/users",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "name": "Chaos Test",
+            "job": "Tester"
+          }
+        },
+        "timeout": 5
+      }
+    }
+  ],
+  "rollbacks": []
+}

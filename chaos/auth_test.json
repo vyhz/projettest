@@ -1,0 +1,189 @@
+{
+  "title": "Authentication Security Test",
+  "description": "Tests de sécurité et de robustesse de l'authentification",
+  "tags": ["security", "authentication", "authorization"],
+  "configuration": {
+    "api_url": "https://reqres.in/api"
+  },
+  "steady-state-hypothesis": {
+    "title": "Authentication system is operational",
+    "probes": [
+      {
+        "type": "probe",
+        "name": "login-endpoint-available",
+        "tolerance": [200, 400],
+        "provider": {
+          "type": "http",
+          "url": "${api_url}/login",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "arguments": {
+            "json": {
+              "email": "test@test.com"
+            }
+          },
+          "timeout": 5
+        }
+      }
+    ]
+  },
+  "method": [
+    {
+      "type": "probe",
+      "name": "test-valid-login",
+      "tolerance": 200,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/login",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "email": "eve.holt@reqres.in",
+            "password": "cityslicka"
+          }
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-invalid-credentials",
+      "tolerance": 400,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/login",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "email": "invalid@email.com",
+            "password": "wrongpassword"
+          }
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-missing-password",
+      "tolerance": 400,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/login",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "email": "eve.holt@reqres.in"
+          }
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-missing-email",
+      "tolerance": 400,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/login",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "password": "somepassword"
+          }
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-empty-body",
+      "tolerance": 400,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/login",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {}
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-sql-injection-attempt",
+      "tolerance": 400,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/login",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "email": "admin'--",
+            "password": "' OR '1'='1"
+          }
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-register-valid",
+      "tolerance": 200,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/register",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "email": "eve.holt@reqres.in",
+            "password": "pistol"
+          }
+        },
+        "timeout": 5
+      }
+    },
+    {
+      "type": "probe",
+      "name": "test-register-missing-password",
+      "tolerance": 400,
+      "provider": {
+        "type": "http",
+        "url": "${api_url}/register",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "arguments": {
+          "json": {
+            "email": "sydney@fife"
+          }
+        },
+        "timeout": 5
+      }
+    }
+  ],
+  "rollbacks": []
+}
