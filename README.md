@@ -1,207 +1,87 @@
-# README - Projet de Tests Automatisés
+# PokeAPI Testing Project 
 
-## 📋 Description du Projet
-
-Ce projet implémente une suite complète de tests automatisés comprenant :
-- **Tests Selenium** : Tests fonctionnels de l'interface utilisateur
-- **Tests Postman** : Tests d'API et d'intégration
-- **Tests JMeter** : Tests de performance et de charge
-- **Tests Chaos Toolkit** : Tests de fiabilité et de sécurité
-
-## 🏗️ Structure du Projet
+Projet de tests complet combinant **Selenium**, **Postman/Newman** et **JMeter** sur l'API [PokeAPI](https://pokeapi.co/).
 
 ```
-projettest/
-├── selenium/           # Tests UI avec Selenium WebDriver
-│   ├── src/test/java/
-│   │   ├── LoginSuccess.java
-│   │   └── LoginAdvanced.java
-│   ├── pom.xml
-│   └── testng.xml
-├── postman/           # Tests API
-│   └── collection.json
-├── jmeter/            # Tests de performance
-│   └── td_performance_test.jmx
-├── chaos/             # Tests de fiabilité
-│   ├── http_test.json
-│   ├── cpu_test.json
-│   └── auth_test.json
-├── reports/           # Rapports générés
-└── .gitlab-ci.yml     # Pipeline CI/CD
-```
 
-## 🚀 Prérequis
+## Types de tests
 
-### Tests Selenium
-- Java 17+
-- Maven 3.9+
-- Chrome/ChromeDriver (géré automatiquement par WebDriverManager)
+### 1. Tests UI - Selenium WebDriver
+Tests de l'interface web de documentation PokeAPI :
+- Chargement de la page d'accueil
+- Présence des éléments interactifs
+- Navigation vers la documentation
+- Affichage des exemples JSON
 
-### Tests Postman
-- Node.js 14+
-- Newman CLI : `npm install -g newman newman-reporter-htmlextra`
-
-### Tests JMeter
-- JMeter 5.7.1+
-- Java 8+
-
-### Tests Chaos
-- Python 3.11+
-- Chaos Toolkit : `pip install chaostoolkit chaostoolkit-http psutil`
-
-## 📦 Installation
-
-### 1. Cloner le projet
-```powershell
-cd "c:\Users\baude\OneDrive\Documents\cesi cours\projettest"
-```
-
-### 2. Installer les dépendances Selenium
-```powershell
-cd selenium
-mvn clean install
-```
-
-### 3. Installer Newman (Postman CLI)
-```powershell
-npm install -g newman newman-reporter-htmlextra
-```
-
-### 4. Installer Chaos Toolkit
-```powershell
-pip install chaostoolkit chaostoolkit-http psutil
-```
-
-## 🧪 Exécution des Tests
-
-### Tests Selenium
-```powershell
-cd selenium
-mvn clean test
-```
-
-Ou pour des tests spécifiques :
-```powershell
-mvn test -Dtest=LoginSuccess
-mvn test -Dtest=LoginAdvanced
-```
-
-### Tests Postman
-```powershell
-cd postman
-newman run collection.json --reporters cli,htmlextra --reporter-htmlextra-export ../reports/postman-report.html
-```
-
-### Tests JMeter
-```powershell
-cd jmeter
-jmeter -n -t td_performance_test.jmx -l ../reports/jmeter-results.jtl -e -o ../reports/jmeter-report
-```
-
-### Tests Chaos Toolkit
-```powershell
-cd chaos
-chaos run http_test.json --journal-path=../reports/chaos-http.json
-chaos run cpu_test.json --journal-path=../reports/chaos-cpu.json
-chaos run auth_test.json --journal-path=../reports/chaos-auth.json
-```
-
-## 📊 Rapports
-
-Les rapports sont générés dans le dossier `reports/` :
-- **Selenium** : `selenium/target/surefire-reports/`
-- **Postman** : `reports/postman-report.html`
-- **JMeter** : `reports/jmeter-report/index.html`
-- **Chaos** : `reports/chaos-*.json`
-
-## 🔧 Configuration
-
-### Variables d'environnement Selenium
-- `BASE_URL` : URL de base pour les tests (par défaut : https://practicetestautomation.com)
-
-### Variables JMeter
-- `THREADS` : Nombre d'utilisateurs virtuels (50)
-- `RAMP_UP` : Temps de montée en charge en secondes (10)
-- `DURATION` : Durée du test en secondes (60)
-
-## 🔄 Pipeline CI/CD
-
-Le pipeline GitLab CI/CD (`.gitlab-ci.yml`) exécute automatiquement :
-1. Tests Selenium (Stage 1)
-2. Tests Postman (Stage 2)
-3. Tests JMeter (Stage 3)
-4. Tests Chaos (Stage 4)
-5. Publication des rapports consolidés (Stage 5)
-
-### Déclencher le pipeline
+**Exécution locale :**
 ```bash
-git add .
-git commit -m "Ajout des tests"
-git push origin main
+mvn test -Dtest=selenium.PokeAPIWebTest
 ```
 
-## 📝 Tests Implémentés
+### 2. Tests API - Postman/Newman + REST Assured
 
-### Selenium (UI)
-- ✅ Connexion avec identifiants valides
-- ✅ Vérification des éléments post-connexion
-- ✅ Cycle connexion-déconnexion
-- ✅ Validation des erreurs (username/password invalides)
-- ✅ Tests de sécurité (injection SQL)
+#### Newman (Postman CLI)
+Collection de 9 requêtes testant :
+- GET /pokemon (liste)
+- GET /pokemon/pikachu
+- GET /pokemon/1 (Bulbasaur)
+- GET /pokemon/fakemonster (404)
+- GET /type/electric
+- GET /type (tous les types)
+- GET /ability/static
+- GET /generation/1
 
-### Postman (API)
-- ✅ Tests d'authentification (login/register)
-- ✅ CRUD utilisateurs (GET, POST, PUT, DELETE)
-- ✅ Gestion des erreurs (404, 400)
-- ✅ Tests de pagination
-- ✅ Validation des réponses JSON
-
-### JMeter (Performance)
-- ✅ Tests de charge (50 utilisateurs simultanés)
-- ✅ Tests de montée en charge progressive
-- ✅ Assertions sur les temps de réponse
-- ✅ Validation des codes HTTP
-
-### Chaos (Fiabilité)
-- ✅ Tests de disponibilité HTTP
-- ✅ Tests de charge CPU
-- ✅ Tests de sécurité d'authentification
-- ✅ Validation des codes d'erreur
-
-## 🛠️ Dépannage
-
-### Erreur Selenium : WebDriver not found
-```powershell
-mvn clean install
-```
-
-### Erreur Newman : command not found
-```powershell
+**Exécution locale :**
+```bash
 npm install -g newman
+newman run postman/PokeAPI_Collection.json -e postman/PokeAPI_Environment.json
 ```
 
-### Erreur JMeter : Java heap space
-Augmenter la mémoire dans `jmeter.bat` :
+#### REST Assured (Java)
+8 tests API en Java :
+- GET Pokemon par nom et ID
+- Vérification des types et abilities
+- Tests de statut 404
+- Validation des stats de Pikachu
+
+**Exécution locale :**
+```bash
+mvn test -Dtest=api.PokeAPITest
 ```
-set HEAP=-Xms1g -Xmx4g
+
+### 3. Tests de Performance - JMeter
+
+3 Thread Groups :
+| Thread Group | Users | Loops | Endpoint |
+|--------------|-------|-------|----------|
+| TG1 - Pokemon List | 5 | 3 | GET /pokemon?limit=20 |
+| TG2 - Pokemon Details | 10 | 2 | GET /pokemon/pikachu |
+| TG3 - CSV Data Driven | 3 | 2 | GET /pokemon/{id}, GET /type/{type} |
+
+**Exécution locale :**
+```bash
+jmeter -n -t jmeter/pokeapi_performance_test.jmx -l results.jtl -e -o report
 ```
 
-### Erreur Chaos : Module not found
-```powershell
-pip install --upgrade chaostoolkit chaostoolkit-http psutil
+## Pipeline GitLab CI/CD
+
+Le pipeline comporte 4 stages :
+
+```
+build → test-api → test-ui → test-performance
 ```
 
-## 📚 Documentation
+| Stage | Job | Description |
+|-------|-----|-------------|
+| build | build | Compilation Maven |
+| test-api | test_api_newman | Tests Newman (Postman) |
+| test-api | test_api_java | Tests REST Assured |
+| test-ui | test_ui_selenium | Tests Selenium + Chrome |
+| test-performance | test_performance_jmeter | Tests JMeter |
 
-- [Selenium Documentation](https://www.selenium.dev/documentation/)
-- [Newman Documentation](https://learning.postman.com/docs/running-collections/using-newman-cli/)
-- [JMeter Documentation](https://jmeter.apache.org/usermanual/index.html)
-- [Chaos Toolkit Documentation](https://chaostoolkit.org/reference/tutorial/)
+## Rapports
 
-## 👥 Contributeurs
-
-Projet créé dans le cadre du cours CESI
-
-## 📄 Licence
-
-Ce projet est à usage éducatif.
+Après exécution du pipeline, les artifacts incluent :
+- **Newman** : `results/newman-report.html`
+- **Surefire** : `target/surefire-reports/*.xml`
+- **JMeter** : `jmeter/report/index.html`

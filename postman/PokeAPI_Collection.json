@@ -1,0 +1,319 @@
+{
+	"info": {
+		"_postman_id": "pokeapi-collection",
+		"name": "PokeAPI Tests Collection",
+		"description": "Collection de tests d'intégration pour PokeAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://pokeapi.co/api/v2"
+		}
+	],
+	"item": [
+		{
+			"name": "Pokemon",
+			"item": [
+				{
+					"name": "GET Pokemon List",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pokemon?limit=20&offset=0",
+							"host": ["{{base_url}}"],
+							"path": ["pokemon"],
+							"query": [
+								{"key": "limit", "value": "20"},
+								{"key": "offset", "value": "0"}
+							]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has count', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.count).to.be.above(0);",
+									"});",
+									"",
+									"pm.test('Response has results array', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.results).to.be.an('array');",
+									"    pm.expect(jsonData.results.length).to.equal(20);",
+									"});",
+									"",
+									"pm.test('First Pokemon has name and url', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.results[0]).to.have.property('name');",
+									"    pm.expect(jsonData.results[0]).to.have.property('url');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "GET Pokemon Pikachu",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pokemon/pikachu",
+							"host": ["{{base_url}}"],
+							"path": ["pokemon", "pikachu"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Pokemon name is pikachu', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.equal('pikachu');",
+									"});",
+									"",
+									"pm.test('Pokemon ID is 25', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.equal(25);",
+									"});",
+									"",
+									"pm.test('Pokemon has types', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.types).to.be.an('array');",
+									"    pm.expect(jsonData.types.length).to.be.above(0);",
+									"});",
+									"",
+									"pm.test('Pokemon has stats', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.stats).to.be.an('array');",
+									"    pm.expect(jsonData.base_experience).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "GET Pokemon by ID (Bulbasaur)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pokemon/1",
+							"host": ["{{base_url}}"],
+							"path": ["pokemon", "1"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Pokemon name is bulbasaur', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.equal('bulbasaur');",
+									"});",
+									"",
+									"pm.test('Pokemon ID is 1', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.id).to.equal(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "GET Pokemon Not Found",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/pokemon/fakemonster999",
+							"host": ["{{base_url}}"],
+							"path": ["pokemon", "fakemonster999"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function() {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Types",
+			"item": [
+				{
+					"name": "GET Type Electric",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/type/electric",
+							"host": ["{{base_url}}"],
+							"path": ["type", "electric"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Type name is electric', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.equal('electric');",
+									"});",
+									"",
+									"pm.test('Type has pokemon list', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.pokemon).to.be.an('array');",
+									"    pm.expect(jsonData.pokemon.length).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "GET All Types",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/type",
+							"host": ["{{base_url}}"],
+							"path": ["type"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has results', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.results).to.be.an('array');",
+									"    pm.expect(jsonData.results.length).to.be.above(10);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Abilities",
+			"item": [
+				{
+					"name": "GET Ability Static",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/ability/static",
+							"host": ["{{base_url}}"],
+							"path": ["ability", "static"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Ability name is static', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.equal('static');",
+									"});",
+									"",
+									"pm.test('Ability has pokemon', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.pokemon).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Generations",
+			"item": [
+				{
+					"name": "GET Generation 1",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/generation/1",
+							"host": ["{{base_url}}"],
+							"path": ["generation", "1"]
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Generation name is generation-i', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.equal('generation-i');",
+									"});",
+									"",
+									"pm.test('Generation has 151 pokemon species', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.pokemon_species).to.be.an('array');",
+									"    pm.expect(jsonData.pokemon_species.length).to.equal(151);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

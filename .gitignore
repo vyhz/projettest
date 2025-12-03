@@ -1,71 +1,30 @@
-# Compiled class files
+# Build
+target/
 *.class
-
-# Log files
-*.log
+*.jar
+*.war
 
 # Maven
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
-
-# Maven local repository
 .m2/
-
-# JMeter
-jmeter.log
-*.jtl
-jmeter-report/
-
-# Reports
-reports/*.html
-reports/*.xml
-reports/*.jtl
-reports/*.json
-reports/jmeter-report/
-reports/selenium/
+*.log
 
 # IDE
 .idea/
 *.iml
 .vscode/
-.settings/
 .project
 .classpath
-*.swp
-*.swo
-*~
+.settings/
+
+# Node
+node_modules/
+
+# Test results
+results/
+jmeter/report/
+jmeter/results.jtl
+jmeter/jmeter.log
 
 # OS
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# Node modules (si Newman installé localement)
-node_modules/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-venv/
-ENV/
-.venv/
-
-# Chaos Toolkit
-chaostoolkit.log
-journal.json
-
-# Temporary files
-*.tmp
-*.bak
-*.old

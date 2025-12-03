@@ -1,0 +1,13 @@
+{
+	"id": "pokeapi-environment",
+	"name": "PokeAPI Environment",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "https://pokeapi.co/api/v2",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment"
+}

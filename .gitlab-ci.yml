@@ -1,232 +1,110 @@
-# ===================================
-# Pipeline CI/CD - Tests Complets
-# Selenium | Postman | JMeter | Chaos
-# ===================================
+image: maven:3.9.6-eclipse-temurin-17
 
 stages:
-  - selenium_tests      # Tests fonctionnels UI
-  - postman_tests       # Tests API/intégration
-  - performance_tests   # Tests de charge JMeter
-  - chaos_tests         # Tests de fiabilité/sécurité
-  - publish_reports     # Génération rapports consolidés
+  - build
+  - test-api
+  - test-ui
+  - test-performance
 
-# ===================================
-# Variables globales
-# ===================================
 variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-  REPORTS_DIR: "reports"
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
 
-# ===================================
-# Cache Maven pour Selenium
-# ===================================
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
   paths:
-    - .m2/repository
+    - .m2/repository/
+    - node_modules/
 
-# ===================================
-# STAGE 1 : Tests Selenium (UI)
-# ===================================
-selenium_ui_tests:
-  stage: selenium_tests
+# =============================================
+# STAGE 1: BUILD
+# =============================================
+build:
+  stage: build
+  script:
+    - echo "Building project..."
+    - mvn clean compile -DskipTests
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 hour
+
+# =============================================
+# STAGE 2: API TESTS (Postman/Newman)
+# =============================================
+test_api_newman:
+  stage: test-api
+  image: node:20
+  script:
+    - echo "Installing Newman..."
+    - npm install -g newman newman-reporter-htmlextra
+    - echo "Running Postman/Newman API tests..."
+    - newman run postman/PokeAPI_Collection.json -e postman/PokeAPI_Environment.json --reporters cli,junit,htmlextra --reporter-junit-export results/newman-junit.xml --reporter-htmlextra-export results/newman-report.html
+  artifacts:
+    when: always
+    paths:
+      - results/
+    reports:
+      junit: results/newman-junit.xml
+    expire_in: 1 week
+
+test_api_java:
+  stage: test-api
+  image: maven:3.9.6-eclipse-temurin-17
+  script:
+    - echo "Running REST Assured API tests..."
+    - mvn test -Dtest=api.PokeAPITest
+  artifacts:
+    when: always
+    paths:
+      - target/surefire-reports/
+    reports:
+      junit: target/surefire-reports/*.xml
+    expire_in: 1 week
+
+# =============================================
+# STAGE 3: UI TESTS (Selenium)
+# =============================================
+test_ui_selenium:
+  stage: test-ui
   image: maven:3.9.6-eclipse-temurin-17
   services:
     - name: selenium/standalone-chrome:latest
-      alias: chrome
+      alias: selenium
+  variables:
+    SELENIUM_REMOTE_URL: "http://selenium:4444/wd/hub"
+    CI: "true"
   script:
-    - echo "🔍 Exécution des tests Selenium..."
-    - cd selenium
-    - mvn clean test -Dtest=LoginSuccess,LoginAdvanced
-    - echo "✅ Tests Selenium terminés"
+    - echo "Running Selenium UI tests..."
+    - mvn test -Dtest=selenium.PokeAPIWebTest
   artifacts:
     when: always
     paths:
-      - selenium/target/surefire-reports/
+      - target/surefire-reports/
     reports:
-      junit: selenium/target/surefire-reports/TEST-*.xml
-    expire_in: 7 days
-  allow_failure: false
-  only:
-    - main
-    - develop
-    - merge_requests
+      junit: target/surefire-reports/*.xml
+    expire_in: 1 week
+  allow_failure: true
 
-# ===================================
-# STAGE 2 : Tests Postman (API)
-# ===================================
-postman_api_tests:
-  stage: postman_tests
-  image: postman/newman:alpine
-  script:
-    - echo "🔍 Exécution des tests API Postman..."
-    - cd postman
-    # Installation de newman-reporter-htmlextra pour rapports HTML
-    - npm install -g newman-reporter-htmlextra
-    - |
-      newman run collection.json \
-        --reporters cli,junit,htmlextra \
-        --reporter-junit-export ../reports/postman-results.xml \
-        --reporter-htmlextra-export ../reports/postman-report.html
-    - echo "✅ Tests API terminés"
-  artifacts:
-    when: always
-    paths:
-      - reports/postman-report.html
-      - reports/postman-results.xml
-    reports:
-      junit: reports/postman-results.xml
-    expire_in: 7 days
-  allow_failure: false
-  only:
-    - main
-    - develop
-    - merge_requests
-
-# ===================================
-# STAGE 3 : Tests JMeter (Performance)
-# ===================================
-jmeter_performance_tests:
-  stage: performance_tests
-  image: justb4/jmeter:5.7.1
-  script:
-    - echo "⚡ Exécution des tests de performance JMeter..."
-    - cd jmeter
-    - |
-      jmeter -n \
-        -t td_performance_test.jmx \
-        -l ../reports/jmeter-results.jtl \
-        -e -o ../reports/jmeter-report \
-        -Jjmeter.reportgenerator.overall_granularity=1000
-    - echo "✅ Tests de performance terminés"
-    # Affichage statistiques clés
-    - echo "📊 Statistiques de performance :"
-    - tail -n 20 ../reports/jmeter-results.jtl
-  artifacts:
-    when: always
-    paths:
-      - reports/jmeter-report/
-      - reports/jmeter-results.jtl
-    expire_in: 7 days
-  allow_failure: true  # Ne bloque pas le pipeline si les perfs sont dégradées
-  only:
-    - main
-    - develop
-    - merge_requests
-
-# ===================================
-# STAGE 4 : Tests Chaos Toolkit
-# ===================================
-chaos_reliability_tests:
-  stage: chaos_tests
-  image: python:3.11-slim
+# =============================================
+# STAGE 4: PERFORMANCE TESTS (JMeter)
+# =============================================
+test_performance_jmeter:
+  stage: test-performance
+  image: eclipse-temurin:11-jdk
   before_script:
-    - echo "🔧 Installation Chaos Toolkit..."
-    - pip install --quiet chaostoolkit chaostoolkit-http psutil
+    - apt-get update && apt-get install -y wget
+    - wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.tgz
+    - tar -xzf apache-jmeter-5.5.tgz
   script:
-    - echo "🧪 Exécution des tests de fiabilité..."
-    - cd chaos
-    # Test HTTP disponibilité
-    - chaos run http_test.json --journal-path=../reports/chaos-http.json || true
-    # Test surcharge CPU
-    - chaos run cpu_test.json --journal-path=../reports/chaos-cpu.json || true
-    # Test sécurité authentification
-    - chaos run auth_test.json --journal-path=../reports/chaos-auth.json || true
-    - echo "✅ Tests de fiabilité terminés"
+    - echo "Running JMeter performance tests..."
+    - apache-jmeter-5.5/bin/jmeter -n -t jmeter/pokeapi_performance_test.jmx -l jmeter/results.jtl -j jmeter/jmeter.log
+    - echo "Generating HTML report..."
+    - apache-jmeter-5.5/bin/jmeter -g jmeter/results.jtl -o jmeter/report
+    - echo "Performance tests completed!"
   artifacts:
     when: always
     paths:
-      - reports/chaos-*.json
-    expire_in: 7 days
-  allow_failure: true  # Tests exploratoires, ne bloquent pas
-  only:
-    - main
-    - develop
-
-# ===================================
-# STAGE 5 : Publication Rapports
-# ===================================
-publish_consolidated_reports:
-  stage: publish_reports
-  image: alpine:latest
-  dependencies:
-    - selenium_ui_tests
-    - postman_api_tests
-    - jmeter_performance_tests
-    - chaos_reliability_tests
-  script:
-    - echo "📦 Consolidation des rapports..."
-    - |
-      cat > reports/index.html << 'EOF'
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Rapports de Tests CI/CD</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-          h1 { color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
-          .report-card { 
-            background: white; 
-            padding: 20px; 
-            margin: 15px 0; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-          }
-          .report-card h2 { color: #4CAF50; margin-top: 0; }
-          a { color: #2196F3; text-decoration: none; font-weight: bold; }
-          a:hover { text-decoration: underline; }
-        </style>
-      </head>
-      <body>
-        <h1>🎯 Rapports de Tests CI/CD - Pipeline #${CI_PIPELINE_ID}</h1>
-        <p><strong>Branch :</strong> ${CI_COMMIT_REF_NAME} | <strong>Commit :</strong> ${CI_COMMIT_SHORT_SHA}</p>
-        
-        <div class="report-card">
-          <h2>🔍 Tests Selenium (UI)</h2>
-          <p>Tests fonctionnels de l'interface utilisateur</p>
-          <a href="selenium/target/surefire-reports/">📂 Voir les rapports Selenium</a>
-        </div>
-
-        <div class="report-card">
-          <h2>🌐 Tests Postman (API)</h2>
-          <p>Tests d'intégration et validation des endpoints</p>
-          <a href="postman-report.html">📊 Rapport Postman HTML</a>
-        </div>
-
-        <div class="report-card">
-          <h2>⚡ Tests JMeter (Performance)</h2>
-          <p>Tests de charge et de performance</p>
-          <a href="jmeter-report/index.html">📈 Dashboard JMeter</a>
-        </div>
-
-        <div class="report-card">
-          <h2>🧪 Tests Chaos Toolkit</h2>
-          <p>Tests de fiabilité et de sécurité</p>
-          <a href="chaos-http.json">📄 Rapport HTTP</a> | 
-          <a href="chaos-cpu.json">📄 Rapport CPU</a> | 
-          <a href="chaos-auth.json">📄 Rapport Auth</a>
-        </div>
-      </body>
-      </html>
-      EOF
-    - echo "✅ Page d'accueil des rapports générée"
-  artifacts:
-    paths:
-      - reports/
-    expire_in: 30 days
-  only:
-    - main
-    - develop
-
-# ===================================
-# Job optionnel : Tests en environnement de staging
-# ===================================
-deploy_to_staging:
-  stage: .post
-  script:
-    - echo "🚀 Déploiement en staging après succès des tests..."
-    # Ajouter vos commandes de déploiement ici
-  only:
-    - main
-  when: on_success
+      - jmeter/report/
+      - jmeter/results.jtl
+      - jmeter/jmeter.log
+    expire_in: 1 week
+  allow_failure: true
